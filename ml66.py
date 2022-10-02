@@ -57,6 +57,29 @@ def f(path3,size):
                 
     return d1ata
 
+@bottle.route("/c")
+def controlgru():
+    t=torch.tensor(f("control",2))
+    a=0
+    b=t
+
+    g=torch.nn.AdaptiveMaxPool2d((256,64))
+    b=g(t)
+    
+    relu=torch.nn.ReLU()
+    b=relu(b)
+    re=torch.nn.AdaptiveMaxPool2d((2,2))
+    b=re(b)
+    
+    #b=list(b)
+    #b1=torch.tensor(b)
+
+    #s=torch.nn.Softmax(b)
+    #b=s(b)
+    print(b)
+    a=a+1
+
+    return str(b)
 
 @bottle.route("/s")
 def schizogro():
@@ -67,20 +90,24 @@ def schizogro():
     a=0
     b=t
 
-    while(a<100):
-        g=torch.nn.AdaptiveMaxPool2d((256,64))
-        b=g(t)
-       
-        relu=torch.nn.ReLU()
-        b=relu(b)
-        l2=torch.nn.Linear(64,2,dtype=torch.double)
-        b=l2(b)
-        s=torch.nn.Softmax()
-        b=s(b)
-        print(b)
-        a=a+1
+    g=torch.nn.AdaptiveMaxPool2d((256,64))
+    b=g(t)
+    
+    relu=torch.nn.ReLU()
+    b=relu(b)
+    re=torch.nn.AdaptiveMaxPool2d((2,2))
+    b=re(b)
+    
+    #b=list(b)
+    #b1=torch.tensor(b)
 
-    return pd.DataFrame(b).to_html()
+    #s=torch.nn.Softmax(b)
+    #b=s(b)
+    print(b)
+    a=a+1
+
+    return str(b)
+
     #for aai in (f("out")[0:20]):
      #   torch.tensor(aai)
     #j=torch.nn.MaxPool3d(3,2)
@@ -92,6 +119,9 @@ def schizogro():
     return (pd.DataFrame(Net(t)).to_html(escape=False))
 #print(pd.DataFrame(f("out")).to_csv())
 #print(pd.DataFrame(f("control")).to_csv())
+@bottle.route("/")
+def a():
+    return "<iframe src='/c'><iframe src='/s'>"
 def wsgi_app():
     """Returns the application to make available through wfastcgi. This is used
     when the site is published to Microsoft Azure."""
