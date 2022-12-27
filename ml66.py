@@ -263,7 +263,7 @@ def controlgru():
 
        # MyCustomSGD(np.array(poolingOverlap(x4q,3,3)[0][0]),0.001,50,2,5)
         #poolingOverlap(i,12,3)
-        #M1.append(sigmoid(np.array(net2(xa),dtype=np.float64)))
+        M1.append(sigmoid(np.array(jp,dtype=np.float64)))
         #m2.append(pandas.DataFrame(sigmoid(np.array(net2(xa),dtype=np.float64))[0][0]))
     return str(d19[0].shape())+"<hr>"+pandas.DataFrame(M1).to_html()
 
