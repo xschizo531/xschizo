@@ -1,11 +1,117 @@
-import pandas
+from pickletools import float8
+from random import sample
+import math,pandas
+import turtle
+from re import A
 import numpy as np
 def softmax(x):
 	return np.exp(x) / np.exp(x).sum()
 
 def sigmoid(X):
    return 1/(1+np.exp(-X))
+def MyCustomSGD(train_data,learning_rate,n_iter,k,divideby,group):
+    
+    # Initially we will keep our W and B as 0 as per the Training Data
+    w=np.zeros(shape=(1,train_data.shape[0]-1))
+    b=0
+    
+    cur_iter=1
+    while(cur_iter<=n_iter): 
+
+        # We will create a small training data set of size K
+        
+        # We create our X and Y from the above temp dataset
+        y=np.array([group]*train_data.shape[0])
+        x=np.array(train_data)
+        
+        # We keep our initial gradients as 0
+        w_gradient=np.zeros(shape=(1,train_data.shape[0]-1))
+        b_gradient=0
+        
+        for i in range(k): # Calculating gradients for point in our K sized dataset
+            prediction=np.dot(w,x[i])+b
+            w_gradient=w_gradient+(-2)*x[i]*(y[i]-(prediction))
+            b_gradient=b_gradient+(-2)*(y[i]-(prediction))
+        
+        #Updating the weights(W) and Bias(b) with the above calculated Gradients
+        w=w-learning_rate*(w_gradient/k)
+        b=b-learning_rate*(b_gradient/k)
+        
+        # Incrementing the iteration value
+        cur_iter=cur_iter+1
+        
+        #Dividing the learning rate by the specified value
+        learning_rate=learning_rate/divideby
+        
+    return w,b #Returning the weights and Bias
+def cost(W, H,A):
+    pred = np.dot(W, H)
+    mask = ~np.isnan(A)
+    return np.sqrt(((pred - A)[mask].flatten() ** 2).mean(axis=None))
+
+A=np.array([[11,5],[5,11]])
+def ax(A):
+    shape = A.shape
+    rank = 2
+    learning_rate=0.01
+    n_steps = 10000
+    # Initialising W and H
+    H =  np.abs(np.random.randn(rank, A.shape[1]))
+    W =  np.abs(np.random.randn(A.shape[0], rank))
+
+    # gt_w and gt_h contain accumulation of sum of gradients
+    gt_w = np.zeros_like(W)
+    gt_h = np.zeros_like(H)
+
+    # stability factor
+    eps = 1e-8
+    for i in range(n_steps):
+
+        if(i%1000==0):
+
+        # computing grad. wrt W and H
+            del_W, del_H = grad_cost(W, H)
+
+        # Adding square of gradient
+            gt_w+= np.square(del_W)
+            gt_h+= np.square(del_H)
+
+        # modified learning rate
+            mod_learning_rate_W = np.divide(learning_rate, np.sqrt(gt_w+eps))
+            mod_learning_rate_H = np.divide(learning_rate, np.sqrt(gt_h+eps))
+            W =  W-del_W*mod_learning_rate_W
+            H =  H-del_H*mod_learning_rate_H
+
+def adagrad(f_grad,x0,data,args,stepsize = 1e-2,fudge_factor = 1e-6,max_it=1000,minibatchsize=None,minibatch_ratio=0.01):
+    # f_grad returns the loss functions gradient
+    # x0 are the initial parameters (a starting point for the optimization)
+    # data is a list of training data
+    # args is a list or tuple of additional arguments passed to fgrad
+    # stepsize is the global stepsize for adagrad
+    # fudge_factor is a small number to counter numerical instabiltiy
+    # max_it is the number of iterations adagrad will run
+    # minibatchsize if given is the number of training samples considered in each iteration
+    # minibatch_ratio if minibatchsize is not set this ratio will be used to determine the batch size dependent on the length of the training data
+    
+    #d-dimensional vector representing diag(Gt) to store a running total of the squares of the gradients.
+    gti=np.zeros(x0.shape[0])
+    
+    ld=len(data)
+    if minibatchsize is None:
+        minibatchsize = int(math.ceil(len(data)*minibatch_ratio))
+    w=x0
+    for t in range(max_it):
+        s=sample(range(ld),minibatchsize)
+        sd=[data[idx] for idx in s]
+        grad=f_grad(w,sd,*args)
+        gti+=grad**2
+        adjusted_grad = grad / (fudge_factor + np.sqrt(gti))
+        w = w - stepsize*adjusted_grad
+    return w
+
+from urllib import request
 import bottle
+from bottle import request
 import os
 import sys
 import pandas as pd
@@ -18,6 +124,7 @@ if '--debug' in sys.argv[1:] or 'SERVER_DEBUG' in os.environ:
     bottle.debug(True)
 
 import os
+from nilearn import plotting
 from nilearn import datasets
 atlas = datasets.fetch_atlas_msdl()
 def asStride(arr, sub_shape, stride):
@@ -91,12 +198,15 @@ def poolingOverlap(mat, f, stride=None, method='max', pad=False,
         return result, pos
     else:
         return result
+M1=[]
+def zerone(x):
+    return (x-np.min(x))/(np.max(x)-np.min(x))
 atlas_filename = "64/64/2mm/maps.nii.gz"
-
 def n11(folder):
         import nibabel
         d19=[]
-        for i in os.listdir(folder)[0:30]:
+        for i in os.listdir(folder):
+            if i.endswith('.nii.gz'):
                 img = nibabel.load(os.path.join(folder, i))
                 a = np.array(img.dataobj,dtype=np.float32)
                 d19.append(a)
@@ -105,8 +215,8 @@ def n11(folder):
             print(i.shape)
             #i = np.asarray(i, dtype=np.float32, shape=((64, 64, 33, 112)))
             x2q=        poolingOverlap(np.array(i,dtype=np.float32),12,3)
-            x3q=np.array(poolingOverlap(x2q,2,2))
-            x4q=np.array(poolingOverlap(x3q,2,2))
+            x3q=np.array(poolingOverlap(x2q,2,2,method="mean"))
+            x4q=np.array(poolingOverlap(np.tanh(zerone(x3q)),2,2,method="mean"))
             jp=np.array(poolingOverlap(x4q,3,3))
 
             #qare=MyCustomSGD(jp,1e-6,20,2,1,0)
@@ -114,7 +224,7 @@ def n11(folder):
 
            # MyCustomSGD(np.array(poolingOverlap(x4q,3,3)[0][0]),0.001,50,2,5)
             #poolingOverlap(i,12,3)
-            M1.append(sigmoid(np.array(jp,dtype=np.float64)))
+            M1.append(np.max(np.tanh(np.array(jp,dtype=np.float64))))
             #m2.append(pandas.DataFrame(sigmoid(np.array(net2(xa),dtype=np.float64))[0][0]))
         return pandas.DataFrame(M1).to_html()
 
