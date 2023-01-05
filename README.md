@@ -1,5 +1,5 @@
 # xschizo
-
+<H3>This project deals with computerized decoding of fMRI scans from the COBRE database to find an unequivocal biomarker of schizophrenia</H3>
 
 Functional magnetic resonance imaging (fMRI) is a neuroimaging technique that allows researchers to non-invasively measure brain activity by detecting changes in blood flow. It has been used to study various psychiatric conditions, including schizophrenia.
 
