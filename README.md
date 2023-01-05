@@ -10,3 +10,4 @@ Finding an "unequivocal biomarker" of schizophrenia, or any other psychiatric co
 
 That being said, research on the use of fMRI and other neuroimaging techniques to identify potential biomarkers for schizophrenia is an active area of study. By analyzing patterns of brain activity in individuals with schizophrenia, researchers may be able to identify unique patterns or characteristics that could potentially serve as biomarkers for the disorder. However, more research is needed to fully understand the potential of these techniques and how they may be used in clinical practice.
 
+
